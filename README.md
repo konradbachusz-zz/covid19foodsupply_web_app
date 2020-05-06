@@ -1,2 +1,2 @@
-# covid19foodsupply_web_scraper
-Web Scrapers from the covid19foodsupply project
+# covid19foodsupply Web app and scraper
+Web app and web scrapers from the covid19foodsupply project
