@@ -1,0 +1,53 @@
+import pgeocode
+import folium
+import pandas as pd
+import geopandas
+
+nomi = pgeocode.Nominatim('gb')
+nomi.query_postal_code("SN1 5AW")
+def calculate_place_name(row): 
+    return nomi.query_postal_code(row['postcode']).place_name
+def calculate_county_name(row):
+    return nomi.query_postal_code(row['postcode']).county_name
+def calculate_lat(row):
+    return nomi.query_postal_code(row['postcode']).latitude
+def calculate_long(row):
+    return nomi.query_postal_code(row['postcode']).longitude
+
+dist = pgeocode.GeoDistance('gb')
+# find distance between Bristl and swindon
+dist.query_postal_code("BS16 7BE", "SN1 5AW")
+
+df = pd.read_csv(r"D:\data\food\fb_locations.csv")
+df['postcode'] = df['postcode'].apply(str)
+df['postcode'] = df['postcode'].str.upper()
+df['postcode'] = df['postcode'].fillna('')
+
+df = df.dropna()
+df = df.reset_index(drop=True)
+df['city'] = df.apply(calculate_place_name,axis = 1)
+df['county'] = df.apply(calculate_county_name,axis = 1)
+df['Latitude'] = df.apply(calculate_lat,axis = 1)
+df['Longitude'] = df.apply(calculate_long,axis = 1)
+
+df['county'].unique()
+# df.to_csv('foodbank_zw.csv')
+
+folium_map = folium.Map(zoom_start= 30,
+                        tiles="CartoDB dark_matter")
+for index, row in df.iterrows():
+    if row['county'] in ['County of Bristol','Leicestershire','Glasgow City']:
+        color="#E37222" # tangerine
+        radius = 20
+    else:
+        color="#0A8A9F" # teal
+        radius = 1
+    
+    folium.CircleMarker(location=(row["Latitude"],
+                                  row["Longitude"]),
+                        color=color,
+                        radius = radius,
+                        popup = row['food_bank'],
+                        icom = folium.Icon(),
+                        fill=True).add_to(folium_map)
+folium_map.save("tony_map1.html")
